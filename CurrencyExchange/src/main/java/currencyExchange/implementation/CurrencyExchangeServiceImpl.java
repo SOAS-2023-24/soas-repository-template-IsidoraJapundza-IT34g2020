@@ -2,6 +2,7 @@ package currencyExchange.implementation;
 
 import java.math.BigDecimal;
 
+import org.springframework.core.env.Environment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,6 +18,9 @@ public class CurrencyExchangeServiceImpl implements CurrencyExchangeService {
 	@Autowired // dependency injection
 	private CurrencyExchangeRepository repo;
 	
+	@Autowired
+	private Environment environment;
+	
 	@Override
 	public ResponseEntity<?> getExchange(String from, String to) {
 		//return convertFromModelToDto(repo.findByFromAndTo(from, to));
@@ -29,6 +33,11 @@ public class CurrencyExchangeServiceImpl implements CurrencyExchangeService {
 	}
 
 	public CurrencyExchangeDto convertFromModelToDto(CurrencyExchangeModel model) {
-		return new CurrencyExchangeDto(model.getFrom(), model.getTo(), model.getExchangeValue());//model sadrzi id, a dto ne sadrzi. Kod dto-a mozemo da odlucimo sta vracamo kao odgovor, a modl sve sto je u tabeli
+		//return new CurrencyExchangeDto(model.getFrom(), model.getTo(), model.getExchangeValue());//model sadrzi id, a dto ne sadrzi. Kod dto-a mozemo da odlucimo sta vracamo kao odgovor, a modl sve sto je u tabeli
+		CurrencyExchangeDto dto = 
+				new CurrencyExchangeDto
+				(model.getFrom(), model.getTo(), model.getExchangeValue());
+		dto.setInstancePort(environment.getProperty("local.server.port"));
+		return dto;
 	}
 }
