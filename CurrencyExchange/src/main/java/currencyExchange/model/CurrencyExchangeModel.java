@@ -12,17 +12,18 @@ import jakarta.persistence.Table;
 @Table(name = "currency_exchange")
 public class CurrencyExchangeModel implements Serializable {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	@Id
 	private int id;
-	@Column(name = "exchange_from", length = 3)
+	
+	@Column(name = "currency_from", nullable = false, length = 3) 
 	private String from;
-	@Column(name = "exchange_to", length = 3)
+	
+	@Column(name = "currency_to", nullable = false, length = 3) 
 	private String to;
+	
+	@Column(name = "exchange_value", nullable = false, precision = 19, scale = 6)
 	private BigDecimal exchangeValue;
 
 	public CurrencyExchangeModel() {

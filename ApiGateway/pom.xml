@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>soas.api-gateway</groupId>
-	<artifactId>ApiGateway</artifactId>
+	<artifactId>api-gateway</artifactId> <!--ApiGateway-->
 	<version>1.0.0</version>
 	<name>ApiGateway</name>
 	<description>API Gateway</description>
@@ -51,6 +51,16 @@
 			<groupId>io.projectreactor</groupId>
 			<artifactId>reactor-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-security -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>soas.api</groupId>
+			<artifactId>API</artifactId>
+			<version>1.0.0</version>
 		</dependency>
 	</dependencies>
 <dependencyManagement>

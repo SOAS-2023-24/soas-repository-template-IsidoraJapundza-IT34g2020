@@ -19,8 +19,6 @@ public class CurrencyConversionDto {
 		this.result = resultHolder;
 	}
 	
-	
-	
 	public CurrencyExchangeDto getExchange() {
 		return exchange;
 	}
@@ -45,9 +43,7 @@ public class CurrencyConversionDto {
 		this.result = result;
 	}
 
-
-
-	private class ConversionResult{ // klasa u klasi jer izvan ove klase nema nikakav znacaj
+	private class ConversionResult{
 		private BigDecimal result;
 		private String currencyTo;
 				
@@ -77,5 +73,4 @@ public class CurrencyConversionDto {
 			this.currencyTo = currencyTo;
 		}		
 	}
-	
 }

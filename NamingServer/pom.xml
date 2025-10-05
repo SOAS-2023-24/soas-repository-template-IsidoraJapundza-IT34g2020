@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>soas.naming-server</groupId>
-	<artifactId>NamingServer</artifactId>
+	<artifactId>naming-server</artifactId> <!--bilo NamingServer-->
 	<version>1.0.0</version>
 	<name>NamingServer</name>
 	<description>Eureka naming server</description>
