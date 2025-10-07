@@ -19,6 +19,7 @@ public class RoutingConfiguration {
 			.route(p -> p.path("/users/**").uri("lb://users-service"))
 			.route(p -> p.path("/bank-accounts/**").uri("lb://bank-account"))
 			.route(p -> p.path("/bank-account/user").uri("lb://bank-account"))
+			.route(p -> p.path("/crypto-exchange").uri("lb://crypto-exchange"))
 			.build();
 	}
 }
