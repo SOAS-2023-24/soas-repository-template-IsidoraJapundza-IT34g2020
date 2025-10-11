@@ -17,6 +17,9 @@ import jakarta.validation.Valid;
 
 public interface UsersService {
 
+	@GetMapping("/users/auth-list")
+	ResponseEntity<List<UserRequestDto>> getUsersForAuth(); // bez request header
+	
 	@GetMapping("/users")
 	List<UserResponseDto> getUsers(@RequestHeader("Authorization") String authorizationHeader);
 	
