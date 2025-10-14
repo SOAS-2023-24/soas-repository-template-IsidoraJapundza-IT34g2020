@@ -21,17 +21,20 @@ import usersService.model.UserModel;
 import usersService.repository.UsersServiceRepository;
 import api.dto.BankAccountDto;
 import api.feignProxies.BankAccountProxy;
+import api.feignProxies.CryptoWalletProxy;
 
 @RestController
 public class UserServiceImplementation implements UsersService{
 
 	private final UsersServiceRepository repo;
 	private final BankAccountProxy bankAccountProxy;
+	private CryptoWalletProxy cryptoWalletProxy;
 	
 	@Autowired
-	public UserServiceImplementation(UsersServiceRepository repo, BankAccountProxy bankAccountProxy) {
+	public UserServiceImplementation(UsersServiceRepository repo, BankAccountProxy bankAccountProxy, CryptoWalletProxy cryptoWalletProxy) {
 		this.repo = repo;
 		this.bankAccountProxy = bankAccountProxy;
+		this.cryptoWalletProxy = cryptoWalletProxy;
 	}
 
 	@Override

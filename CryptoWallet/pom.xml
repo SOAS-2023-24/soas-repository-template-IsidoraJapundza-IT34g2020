@@ -5,14 +5,14 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.4</version>
+		<version>3.5.6</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>soas.users-service</groupId>
-	<artifactId>users-service</artifactId>
-	<version>1.0.0</version>
-	<name>UsersService</name>
-	<description>Users service</description>
+	<groupId>soas.crypto-wallet</groupId>
+	<artifactId>crypto-wallet</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>CryptoWallet</name>
+	<description>Service for crypto wallet</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -61,14 +61,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-    		<groupId>org.springframework.boot</groupId>
-   			<artifactId>spring-boot-starter-validation</artifactId>
-		</dependency>
-		<dependency>
-  			<groupId>org.springframework.boot</groupId>
-  			<artifactId>spring-boot-starter-actuator</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>soas.api</groupId>
 			<artifactId>API</artifactId>
 			<version>1.0.0</version>
@@ -77,10 +69,6 @@
 			<groupId>soas.util</groupId>
 			<artifactId>Util</artifactId>
 			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-    		<groupId>org.springframework.cloud</groupId>
-   			<artifactId>spring-cloud-starter-openfeign</artifactId>
 		</dependency>
 	</dependencies>
 	<dependencyManagement>
