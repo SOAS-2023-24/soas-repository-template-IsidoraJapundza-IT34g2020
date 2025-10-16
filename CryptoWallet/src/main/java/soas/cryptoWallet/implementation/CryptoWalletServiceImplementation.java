@@ -2,6 +2,7 @@ package soas.cryptoWallet.implementation;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
@@ -82,7 +83,7 @@ public class CryptoWalletServiceImplementation implements CryptoWalletService{
 		return getWalletByEmail(email);
 	}
 	
-	// ========== Dodatni endpoint potreban drugim servisima ==========
+	// 
     // (matchuje CryptoWalletProxy.getUserCryptoAmount)
     @org.springframework.web.bind.annotation.GetMapping("/crypto-wallet/{email}/{cryptoFrom}")
     public BigDecimal getUserCryptoAmount(
@@ -99,6 +100,45 @@ public class CryptoWalletServiceImplementation implements CryptoWalletService{
                 .findFirst()
                 .orElse(BigDecimal.ZERO);
     }
+    
+    
+	
+	@Override
+	public ResponseEntity<?> updateBalance(String email, String crypto, BigDecimal amount, String authorizationHeader) {
+		// pronaci novacanik
+		CryptoWalletModel wallet = walletRepo.findByEmail(email);
+		if (wallet == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Wallet not found");
+		}
+		CryptoPairModel pair = null;
+		if (wallet.getPairs() != null) {
+			for (CryptoPairModel p : wallet.getPairs()) {
+				if (crypto.equalsIgnoreCase(p.getCrypto())) {
+					pair = p;
+					break;
+				}
+			}
+		} else {
+			wallet.setPairs(new ArrayList<>());
+		}
+		if (pair == null) {
+			pair = new CryptoPairModel(crypto, BigDecimal.ZERO);
+			pair.setCryptoWallet(wallet);
+			wallet.getPairs().add(pair);
+		}
+		
+		// uvećaj/smanji stanje (amount može biti i negativan?)
+        BigDecimal current = pair.getAmount() == null ? BigDecimal.ZERO : pair.getAmount();
+        BigDecimal updated = current.add(amount);
+        if (updated.compareTo(BigDecimal.ZERO) < 0) {
+            return ResponseEntity.badRequest().body("Insufficient " + crypto + " balance");
+        }
+        pair.setAmount(updated);
+
+        walletRepo.saveAndFlush(wallet);
+        return ResponseEntity.ok().build();
+	}
+	
 	
 	//helpers
 	private CryptoWalletDto toDto(CryptoWalletModel m) {

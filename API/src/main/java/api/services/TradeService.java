@@ -12,6 +12,6 @@ public interface TradeService {
 	@GetMapping("/trade-service")
 	public ResponseEntity<?> trade(@RequestParam String from,
 								   @RequestParam String to,
-								   @RequestParam BigDecimal amount,
+								   @RequestParam("quantity") BigDecimal amount,
 								   @RequestHeader("Authorization") String authorizationHeader);
 }

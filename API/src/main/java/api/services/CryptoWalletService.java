@@ -26,7 +26,6 @@ public interface CryptoWalletService {
 	@DeleteMapping("/crypto-wallet/{email}")
 	public void deleteWallet(@PathVariable("email") String email);
 	
-	
 	@PostMapping("/crypto-wallet")
 	ResponseEntity<?> createWallet(@RequestBody CryptoWalletDto dto, @RequestHeader("Authorization") String authorizationHeader);
 	
@@ -36,5 +35,9 @@ public interface CryptoWalletService {
 	@GetMapping("/crypto-wallet/user")
 	CryptoWalletDto getUsersWallet(@RequestHeader("Authorization") String authorizationHeader);	
 
-	
+	@PutMapping("/crypto-wallet/{email}/balance")
+	ResponseEntity<?> updateBalance(@PathVariable String email,
+										   @RequestParam String crypto,
+										   @RequestParam BigDecimal amount,
+										   @RequestHeader("Authorization") String authorizationHeader);	
 }

@@ -45,9 +45,9 @@ public class TradeServiceImplementation implements TradeService{
 				String userEmail = userProxy.getCurrentUserEmail(authorizationHeader);
 				
 				if (isValidFiatToCryptoExchange(from, to)) {
-					return handleFiatToCryptoExchange(from, to, amount, userEmail);
+					return handleFiatToCryptoExchange(from, to, amount, userEmail, authorizationHeader);
                 } else if (isValidCryptoToFiatExchange(from, to)) {
-                    return handleCryptoToFiatExchange(from, to, amount, userEmail);
+                    return handleCryptoToFiatExchange(from, to, amount, userEmail, authorizationHeader);
                 } else {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request.");
                 }
@@ -84,7 +84,7 @@ public class TradeServiceImplementation implements TradeService{
 			   "LTC".equals(currency);
 	}
 	
-	private ResponseEntity<?> handleFiatToCryptoExchange(String from, String to, BigDecimal amount, String userEmail) {
+	private ResponseEntity<?> handleFiatToCryptoExchange(String from, String to, BigDecimal amount, String userEmail, String authorizationHeader) {
 		
 		if (!"EUR".equals(from) && !"USD".equals(from)) {
 			amount = convertOtherFiatToUSD(from, amount);
@@ -103,7 +103,7 @@ public class TradeServiceImplementation implements TradeService{
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update bank account.");
 		}
 		
-		ResponseEntity<?> updateWalletResponse = walletProxy.updateBalance(userEmail, to, cryptoQuantity, null);
+		ResponseEntity<?> updateWalletResponse = walletProxy.updateBalance(userEmail, to, cryptoQuantity, authorizationHeader);
 		if (!updateWalletResponse.getStatusCode().is2xxSuccessful()) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update crypto wallet.");
 		}
@@ -131,19 +131,20 @@ public class TradeServiceImplementation implements TradeService{
 		return amount.multiply(exchangeValue);
 	}
 	
-	private ResponseEntity<?> handleCryptoToFiatExchange(String from, String to, BigDecimal amount, String userEmail) {
+	private ResponseEntity<?> handleCryptoToFiatExchange(String from, String to, BigDecimal amount, String userEmail, String authorizationHeader) {
 		
 		TradeServiceModel exchangeRate = getExchangeRate(from, to);
 		if (exchangeRate == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Exchange rate not found.");
 		}
 		
-		ResponseEntity<?> updateWalletResponse = walletProxy.updateBalance(userEmail, from, amount.negate(), null);
+		ResponseEntity<?> updateWalletResponse = walletProxy.updateBalance(userEmail, from, amount.negate(), authorizationHeader);
 		if (!updateWalletResponse.getStatusCode().is2xxSuccessful()) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update crypto wallet.");
 		}
 		
 		BigDecimal fiatQuantity = amount.multiply(exchangeRate.getConversionRate());
+		
 		ResponseEntity<?> updateAccountResponse = bankProxy.updateBalances(userEmail, null, to, null, fiatQuantity);
 		if (!updateAccountResponse.getStatusCode().is2xxSuccessful()) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update bank account.");
