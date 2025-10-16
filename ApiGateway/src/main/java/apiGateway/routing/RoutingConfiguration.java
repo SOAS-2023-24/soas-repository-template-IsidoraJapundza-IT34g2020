@@ -23,6 +23,7 @@ public class RoutingConfiguration {
 			.route(p -> p.path("/crypto-wallet/user").uri("lb://crypto-wallet"))
 			.route(p -> p.path("/crypto-exchange").uri("lb://crypto-exchange"))
 			.route(p -> p.path("/crypto-conversion").uri("lb://crypto-conversion"))
+			.route(p -> p.path("/trade-service").uri("lb://trade-service"))
 			.build();
 	}
 }

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import api.dto.CryptoWalletDto;
 
@@ -37,5 +38,10 @@ public interface CryptoWalletProxy {
     @GetMapping("/crypto-wallet/{email}/{cryptoFrom}")
     BigDecimal getUserCryptoAmount(@PathVariable("email") String email, @PathVariable("cryptoFrom") String cryptoFrom);
 
-    
+    @PutMapping("/crypto-wallet/{email}/balance")
+	ResponseEntity<?> updateBalance(
+	    @PathVariable("email") String email,
+	    @RequestParam String crypto,
+	    @RequestParam BigDecimal amount, 
+	    @RequestHeader("Authorization") String authorizationHeader);
 }
