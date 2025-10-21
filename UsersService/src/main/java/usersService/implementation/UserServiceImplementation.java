@@ -3,6 +3,7 @@ package usersService.implementation;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import api.dto.UserRequestDto;
 import api.dto.UserResponseDto;
 import api.services.UsersService;
+import feign.FeignException;
 import jakarta.validation.Valid;
 import usersService.model.UserModel;
 import usersService.repository.UsersServiceRepository;
@@ -91,26 +93,36 @@ public class UserServiceImplementation implements UsersService{
 		UserModel created = repo.save(convertDtoToModel(dto));
 		
 		// ako se pravi USER, napravi i racun
-	    if ("USER".equals(targetRole)) {
+		boolean bankCreated = false;
+	    if ("ADMIN".equalsIgnoreCase(callerRole) && "USER".equalsIgnoreCase(targetRole)) {
 	        try {
 	            BankAccountDto ba = new BankAccountDto();
 	            ba.setEmail(created.getEmail());
 
 	            ResponseEntity<?> resp = bankAccountProxy.createBankAccount(ba, authorizationHeader);
-	            if (resp == null || !resp.getStatusCode().is2xxSuccessful()) {
+	            bankCreated = (resp != null && resp.getStatusCode().is2xxSuccessful());
+	            /*if (resp == null || !resp.getStatusCode().is2xxSuccessful()) {
 	                repo.deleteById(created.getId());
 	                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 	                        .body("Failed to create bank account for user.");
-	            }
+	            }*/
 	        } catch (Exception ex) {
-	            repo.deleteById(created.getId());
+	        	bankCreated = false; // ne rusimo kreiranje usera
+	            /*repo.deleteById(created.getId());
 	            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-	                    .body("Error creating bank account: " + ex.getMessage());
+	                    .body("Error creating bank account: " + ex.getMessage());*/
 	        }
 	    }
 				
+		var body = Map.of(
+				"id", created.getId(),
+		        "email", created.getEmail(),
+		        "role", created.getRole(),
+		        "bankAccountCreated", bankCreated,
+		        "note", bankCreated ? "Bank account created by ADMIN." : "Bank account not created (requires ADMIN)."
+		);
 		// 201
-		return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(created));
+		return ResponseEntity.status(HttpStatus.CREATED).body(body);
 	}
 
 	@Override
@@ -195,22 +207,39 @@ public class UserServiceImplementation implements UsersService{
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Admin can only delete users with role 'USER'.");
 			}
 			
+			boolean bankDeleted = false;
+			try {
+				bankAccountProxy.deleteBankAccount(target.getEmail(), authorizationHeader);
+	            bankDeleted = true;
+			} catch (FeignException ex) {
+				// ne rusimo brisnaj eusera
+				bankDeleted = false;
+			}
 			//prvo pokusaj brisanja bank accoutna
-			var err = tryDeleteBankAccount(target.getEmail(), authorizationHeader);
-			if (err != null) return err;
+			//var err = tryDeleteBankAccount(target.getEmail(), authorizationHeader);
+			//if (err != null) return err;
 			
 			repo.deleteById(id);
-			return ResponseEntity.ok("User with ID " + id + " has been deleted.");
+			return ResponseEntity.ok(Map.of(
+					"userDeleted", true,
+		            "bankAccountDeleted", bankDeleted,
+		            "note", bankDeleted ? "Bank account deleted by ADMIN." : "Bank account deletion skipped/failed (ADMIN only)."
+		    ));
 		}
 		
 		// owner sme brisati sve
 		if ("OWNER".equalsIgnoreCase(callerRole)) {
-			
-			var err = tryDeleteBankAccount(target.getEmail(), authorizationHeader);
+			repo.deleteById(id);
+			return ResponseEntity.ok(Map.of(
+		            "userDeleted", true,
+		            "bankAccountDeleted", false,
+		            "note", "Bank account deletion skipped (OWNER has no access to bank-account)."
+		    ));
+			/*var err = tryDeleteBankAccount(target.getEmail(), authorizationHeader);
 			if (err != null) return err;
 			
 			repo.deleteById(id);
-			return ResponseEntity.ok("User with ID " + id + " has been deleted.");
+			return ResponseEntity.ok("User with ID " + id + " has been deleted.");*/
 		}
 		
 		// ostalo  401
@@ -237,7 +266,7 @@ public class UserServiceImplementation implements UsersService{
 		return new UserModel(dto.getEmail(), dto.getPassword(), dto.getRole());
 	}
 	
-	private ResponseEntity<?> tryDeleteBankAccount(String email, String auth) {
+	/*private ResponseEntity<?> tryDeleteBankAccount(String email, String auth) {
 	    try {
 	        bankAccountProxy.deleteBankAccount(email, auth);
 	        return null;
@@ -247,7 +276,7 @@ public class UserServiceImplementation implements UsersService{
 	        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
 	                .body("Failed to delete bank account: " + fe.getMessage());
 	    }
-	}
+	}*/
 	
 	private record Creds(String email, String password) {}
 	

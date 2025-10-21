@@ -51,6 +51,7 @@ public class CryptoWalletServiceImplementation implements CryptoWalletService{
 		if (m == null) throw new NoDataFoundException("Wallet not found for email: " + email);
 		walletRepo.delete(m);
 	}
+	
 	@Override
 	public ResponseEntity<?> createWallet(CryptoWalletDto dto, String authorizationHeader) {
 		// kreira se preko gatewaua, ovde smao validacija
@@ -66,6 +67,7 @@ public class CryptoWalletServiceImplementation implements CryptoWalletService{
 		CryptoWalletModel saved = saveFromDto(new CryptoWalletModel(dto.getEmail()), dto);
 		return ResponseEntity.status(HttpStatus.CREATED).body(toDto(saved));
 	}
+	
 	@Override
 	public ResponseEntity<?> updateWallet(String email, CryptoWalletDto dto, String authorizationHeader) {
 		CryptoWalletModel m = walletRepo.findByEmail(email);
@@ -77,6 +79,7 @@ public class CryptoWalletServiceImplementation implements CryptoWalletService{
 		CryptoWalletModel saved = saveFromDto(m, dto);
 		return ResponseEntity.ok(toDto(saved));
 	}
+	
 	@Override
 	public CryptoWalletDto getUsersWallet(String authorizationHeader) {
 		String email = extractEmailFromBasicAuth(authorizationHeader);
@@ -149,6 +152,10 @@ public class CryptoWalletServiceImplementation implements CryptoWalletService{
 	}
 	
 	private CryptoWalletModel saveFromDto(CryptoWalletModel model, CryptoWalletDto dto) {
+		if (model.getPairs() == null) {
+			model.setPairs(new ArrayList<>());
+		}
+		
 		// brisemo stare parove i upisujemo nove
 		model.getPairs().clear();
 		
@@ -156,6 +163,12 @@ public class CryptoWalletServiceImplementation implements CryptoWalletService{
 			for (CryptoPairDto p : dto.getPairs()) {
 				String code = normalizeCrypto(p.getCrypto());
 				BigDecimal amount = p.getAmount() ==  null ? BigDecimal.ZERO : p.getAmount();
+				
+				if (amount.signum() < 0) {
+	                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+	                        "Amount for " + code + " must be >= 0");
+	            }
+				
 				CryptoPairModel entity = new CryptoPairModel(code, amount);
 				entity.setCryptoWallet(model);
 				model.getPairs().add(entity);

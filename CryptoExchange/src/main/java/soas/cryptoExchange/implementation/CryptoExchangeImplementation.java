@@ -29,10 +29,10 @@ public class CryptoExchangeImplementation implements CryptoExchangeService {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "'from' and 'to' must differ");
 		}
 		
-		CryptoExchangeModel model = repo.findByFromAndTo(from, to);
+		CryptoExchangeModel model = repo.findByFromAndTo(f, t);
 		
 		if (model == null) {
-			throw new NoDataFoundException("Crypto exchange rate not found for: " + from + " to " + to);
+			throw new NoDataFoundException("Crypto exchange rate not found for: " + f + " to " + t);
 			// return ResponseEntity.status(404).body(null);
 		}
 		
@@ -41,8 +41,12 @@ public class CryptoExchangeImplementation implements CryptoExchangeService {
 	
 	// helper
 	private String normalizeCrypto(String code) {
+		if (code == null) {
+	        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing 'from'/'to'");
+	    }
+		
         try {
-            return Crypto.from(code).code();
+            return Crypto.from(code.trim().toUpperCase()).code();
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported crypto: " + code);
         }

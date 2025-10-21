@@ -32,8 +32,8 @@ public class ApiGatewayAuthentication {
 				.pathMatchers("/currency-conversion").hasRole("USER")
 				.pathMatchers("/currency-conversion-feign").hasRole("USER")
 				.pathMatchers("/users/**").hasAnyRole("ADMIN", "OWNER")
+				.pathMatchers("/bank-accounts/user").hasRole("USER")
 				.pathMatchers("/bank-accounts/**").hasAnyRole("ADMIN")
-				.pathMatchers("/bank-account/user").hasRole("USER")
 				.pathMatchers("/crypto-wallet/user").hasRole("USER")
 			    .pathMatchers("/crypto-wallet/**").hasAnyRole("ADMIN")
 				.pathMatchers("/crypto-exchange", "/crypto-exchange/**").permitAll()
@@ -51,11 +51,19 @@ public class ApiGatewayAuthentication {
 		ResponseEntity<List<UserRequestDto>> response =
 				new RestTemplate().exchange("http://localhost:8770/users/auth-list", HttpMethod.GET,
 						null, new ParameterizedTypeReference<List<UserRequestDto>>() {});
-		List<UserDetails> users = new ArrayList<UserDetails>();
+		//List<UserDetails> users = new ArrayList<UserDetails>();
+		List<UserDetails> users = new ArrayList<>();
+
 		for(UserRequestDto user : response.getBody()) {
+			String pw = user.getPassword();
+			boolean isBcrypt = pw != null && (
+		            pw.startsWith("$2a$") || pw.startsWith("$2b$") || pw.startsWith("$2y$")
+		    );
+			
 			users.add(
 					User.withUsername(user.getEmail())
-					.password(encoder.encode(user.getPassword()))
+					.password(isBcrypt ? pw : encoder.encode(pw))
+					//.password(encoder.encode(user.getPassword()))
 					.roles(user.getRole())
 					.build());
 		}

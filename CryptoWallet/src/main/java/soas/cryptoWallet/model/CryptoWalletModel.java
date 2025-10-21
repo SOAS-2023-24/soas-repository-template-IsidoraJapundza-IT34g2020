@@ -1,5 +1,6 @@
 package soas.cryptoWallet.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -21,7 +22,7 @@ public class CryptoWalletModel {
 	private Long walletId;
 	
 	@OneToMany(mappedBy = "cryptoWallet", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-	private List<CryptoPairModel> pairs;
+	private List<CryptoPairModel> pairs = new ArrayList<>();
 	
 	@Column(unique = true, nullable = false)
 	private String email;

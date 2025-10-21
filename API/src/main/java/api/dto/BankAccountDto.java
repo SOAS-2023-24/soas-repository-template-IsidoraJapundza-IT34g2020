@@ -12,7 +12,7 @@ public class BankAccountDto {
 	@NotBlank
 	private String email;
 	
-	@NotNull
+	//@NotNull
 	private List<FiatBalanceDto> fiatBalances;
 	
 	public BankAccountDto() {

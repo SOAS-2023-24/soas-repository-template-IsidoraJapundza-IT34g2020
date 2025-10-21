@@ -8,5 +8,5 @@ public interface BankAccountRepository extends JpaRepository<BankAccountModel, L
 	BankAccountModel findByEmail(String email);
 	
 	boolean existsByEmail(String email);
-	void deleteByEmail(String email);
+	int deleteByEmail(String email);
 }

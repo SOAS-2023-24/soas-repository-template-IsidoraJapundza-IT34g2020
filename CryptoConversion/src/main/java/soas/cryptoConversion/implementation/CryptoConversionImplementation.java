@@ -31,7 +31,11 @@ public class CryptoConversionImplementation implements CryptoConversionService{
 	public ResponseEntity<CryptoConversionResponseDto> getConversion(String from, String to, BigDecimal quantity,
 			String authorizationHeader) {
 		
-		if (from == null || to == null || from.equalsIgnoreCase(to))
+		String fromN = normalizeCrypto(from);
+	    String toN   = normalizeCrypto(to); 
+	    
+		//if (from == null || to == null || from.equalsIgnoreCase(to))
+	    if (fromN.equals(toN)) 
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, " 'from' and 'to' must be different");
 	
 		if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0)
@@ -41,14 +45,21 @@ public class CryptoConversionImplementation implements CryptoConversionService{
         if (wallet == null) 
         	throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Wallet not found for user");
 
-        BigDecimal fromBal = getBalance(wallet, from);
+        BigDecimal fromBal = getBalance(wallet, fromN);
         if (fromBal.compareTo(quantity) < 0)
-        	throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient funds for " + from);
+        	throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient funds for " + fromN);
 	
+        var rateResp = exchangeProxy.cryptoExchange(fromN, toN); 
+        if (rateResp == null || !rateResp.getStatusCode().is2xxSuccessful() || rateResp.getBody() == null) {
+            if (rateResp != null && rateResp.getStatusCode().value() == 404)
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No rate for " + fromN + " -> " + toN);
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Exchange rate unavailable");
+        }
+        
         BigDecimal rate;
-        var rateResp = exchangeProxy.cryptoExchange(from, to);
+        //var rateResp = exchangeProxy.cryptoExchange(from, to);
         Object body = rateResp.getBody();
-        if (body == null) throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,  "Exchange rate unavailable");
+        //if (body == null) throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,  "Exchange rate unavailable");
 	
         if (body instanceof BigDecimal bd) {
         	rate = bd;
@@ -62,14 +73,14 @@ public class CryptoConversionImplementation implements CryptoConversionService{
         
         BigDecimal received = quantity.multiply(rate).setScale(8, RoundingMode.HALF_UP);
         
-        updateBalance(wallet, from, fromBal.subtract(quantity));
-        BigDecimal toBal = getBalance(wallet, to);
-        updateBalance(wallet, to, toBal.add(received));
+        updateBalance(wallet, fromN, fromBal.subtract(quantity));
+        BigDecimal toBal = getBalance(wallet, toN);
+        updateBalance(wallet, toN, toBal.add(received));
         
         walletProxy.updateWallet(wallet.getEmail(), wallet, authorizationHeader);
 	
-        String msg = String.format("Uspesna razmena %s: %s -> %s: %s (kurs=%s)",
-                from, strip(quantity), to, strip(received), strip(rate));
+        String msg = String.format("Uspešno je izvršena razmena %s: %s za %s: %s (kurs=%s)",
+                fromN, strip(quantity), toN, strip(received), strip(rate));
 
         return ResponseEntity.ok(new CryptoConversionResponseDto(wallet, msg));
 	}
@@ -96,5 +107,18 @@ public class CryptoConversionImplementation implements CryptoConversionService{
 	
 	private String strip(BigDecimal v) {
 		return v.stripTrailingZeros().toPlainString();
+	}
+	
+	private String normalizeCrypto(String code) {
+	    if (code == null) {
+	        throw new org.springframework.web.server.ResponseStatusException(
+	            org.springframework.http.HttpStatus.BAD_REQUEST, "Missing 'from'/'to'");
+	    }
+	    try {
+	        return api.types.Crypto.from(code.trim().toUpperCase()).code();
+	    } catch (IllegalArgumentException e) {
+	        throw new org.springframework.web.server.ResponseStatusException(
+	            org.springframework.http.HttpStatus.BAD_REQUEST, "Unsupported crypto: " + code);
+	    }
 	}
 }

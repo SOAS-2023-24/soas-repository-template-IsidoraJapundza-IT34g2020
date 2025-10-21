@@ -24,7 +24,7 @@ public interface BankAccountService {
 	@GetMapping("/bank-accounts/{email}")
 	BankAccountDto getBankAccountByEmail(@PathVariable("email") String email);
 	
-	@GetMapping("/bank-account/user")
+	@GetMapping("/bank-accounts/user")
 	BankAccountDto getBankAccountForUser(@RequestHeader("Authorization") String authorizationHeader);
 
     @PostMapping("/bank-accounts")
@@ -34,12 +34,12 @@ public interface BankAccountService {
     ResponseEntity<?> updateBankAccount(@PathVariable String email, @Valid @RequestBody BankAccountDto dto, @RequestHeader("Authorization") String authorizationHeader);
 
     @DeleteMapping("/bank-accounts/{email}")
-    void deleteBankAccount(@PathVariable("email") String email, @RequestHeader("Authorization") String authorizationHeader);
+    ResponseEntity<?> deleteBankAccount(@PathVariable("email") String email, @RequestHeader("Authorization") String authorizationHeader);
     
-    @GetMapping("/bank-account/{email}/{currencyFrom}")
+    @GetMapping("/bank-accounts/{email}/{currencyFrom}")
     BigDecimal getUserCurrencyAmount(@PathVariable("email") String email, @PathVariable("currencyFrom") String currencyFrom);
     
-    @PutMapping("/bank-account/account")
+    @PutMapping("/bank-accounts/account")
     ResponseEntity<?> updateBalances(@RequestParam(value = "email") String email, 
     											  @RequestParam(value = "from", required = false) String from,
     										      @RequestParam(value = "to", required = false) String to,

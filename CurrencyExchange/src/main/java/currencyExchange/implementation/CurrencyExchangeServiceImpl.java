@@ -27,11 +27,21 @@ public class CurrencyExchangeServiceImpl implements CurrencyExchangeService {
 
 	@Override
 	public ResponseEntity<CurrencyExchangeDto> getExchange(String from, String to) {
-		if (!isSupportedFiatCurrency(from) || !isSupportedFiatCurrency(to)) {
-			throw new NoDataFoundException("Fiat currency from request not found.");
-        }
 		
-		CurrencyExchangeModel model = repo.findByFromAndTo(from, to);
+		String f = normalizeFiat(from); 
+	    String t = normalizeFiat(to);
+	    
+	    if (f.equals(t)) {
+	        throw new org.springframework.web.server.ResponseStatusException(
+	            org.springframework.http.HttpStatus.BAD_REQUEST, "from and to must differ"
+	        );
+	    }
+	    
+		/*if (!isSupportedFiatCurrency(from) || !isSupportedFiatCurrency(to)) {
+			throw new NoDataFoundException("Fiat currency from request not found.");
+        }*/
+		
+		CurrencyExchangeModel model = repo.findByFromAndTo(f, t);
 		
 		if (model == null) {
 			return ResponseEntity.status(404).build(); //"Rate not found for %s -> %s".formatted(from, to);
@@ -56,4 +66,19 @@ public class CurrencyExchangeServiceImpl implements CurrencyExchangeService {
                "CHF".equals(currency) || 
                "GBP".equals(currency);
     }
+	
+	private String normalizeFiat(String code) {
+		if (code == null || code.isBlank()) {
+	        throw new org.springframework.web.server.ResponseStatusException(
+	            org.springframework.http.HttpStatus.BAD_REQUEST, "from/to is required"
+	        );
+	    }
+	    try {
+	        return api.types.Fiat.from(code.trim().toUpperCase()).code();
+	    } catch (IllegalArgumentException ex) {
+	        throw new org.springframework.web.server.ResponseStatusException(
+	            org.springframework.http.HttpStatus.BAD_REQUEST, "Unsupported fiat: " + code
+	        );
+	    }
+	}
 }
