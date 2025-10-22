@@ -15,12 +15,13 @@ INSERT INTO trade_service (id, currency_from, to_currency, rate) VALUES
 
 -- USD to BTC, ETH, LTC
 INSERT INTO trade_service (id, currency_from, to_currency, rate) VALUES
-(7, 'USD', 'BTC', 1 / 62000.00), -- Example rate for USD to BTC
-(8, 'USD', 'ETH', 1 / 2800.00),  -- Example rate for USD to ETH
-(9, 'USD', 'LTC', 1 / 140.00);    -- Example rate for USD to LTC
+--(7, 'USD', 'BTC', 1 / 62000.00), -- Example rate for USD to BTC
+(7, 'USD', 'BTC', 0.0000161290), -- Example rate for USD to BTC
+(8, 'USD', 'ETH', 0.0003571429),  -- Example rate for USD to ETH
+(9, 'USD', 'LTC', 0.0071428571);    -- Example rate for USD to LTC
 
 -- EUR to BTC, ETH, LTC
 INSERT INTO trade_service (id, currency_from, to_currency, rate) VALUES
-(10, 'EUR', 'BTC', 1/ 58000.00), -- Example rate for EUR to BTC
-(11, 'EUR', 'ETH', 1 / 2600.00),  -- Example rate for EUR to ETH
-(12, 'EUR', 'LTC', 1 / 130.00);     -- Example rate for EUR to LTC
+(10, 'EUR', 'BTC', 0.0000172414), -- Example rate for EUR to BTC
+(11, 'EUR', 'ETH', 0.0003846154),  -- Example rate for EUR to ETH
+(12, 'EUR', 'LTC', 0.0076923077);     -- Example rate for EUR to LTC

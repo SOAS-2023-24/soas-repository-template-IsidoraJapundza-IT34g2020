@@ -132,7 +132,7 @@ public class CryptoWalletServiceImplementation implements CryptoWalletService{
 		
 		// uvećaj/smanji stanje (amount može biti i negativan?)
         BigDecimal current = pair.getAmount() == null ? BigDecimal.ZERO : pair.getAmount();
-        BigDecimal updated = current.add(amount);
+        BigDecimal updated = current.add(amount).setScale(8, java.math.RoundingMode.HALF_UP);;
         if (updated.compareTo(BigDecimal.ZERO) < 0) {
             return ResponseEntity.badRequest().body("Insufficient " + crypto + " balance");
         }

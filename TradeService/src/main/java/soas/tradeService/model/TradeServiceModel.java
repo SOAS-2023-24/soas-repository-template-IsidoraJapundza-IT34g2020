@@ -20,7 +20,7 @@ public class TradeServiceModel {
 	@Column(name = "to_currency")
 	private String to;
 	
-	@Column(name = "rate")
+	@Column(name = "rate", precision = 19, scale = 8) // 8 decimala
 	private BigDecimal conversionRate;
 
 	public TradeServiceModel() {

@@ -6,7 +6,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"util.exceptions", "soas.trade_service"})
+@ComponentScan(basePackages = {"util.exceptions", "soas.tradeService"})
 @EnableFeignClients(basePackages = {"api.feignProxies"})
 public class TradeServiceApplication {
 

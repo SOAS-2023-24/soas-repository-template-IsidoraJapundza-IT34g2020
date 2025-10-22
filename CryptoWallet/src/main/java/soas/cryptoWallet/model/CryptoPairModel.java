@@ -2,6 +2,7 @@ package soas.cryptoWallet.model;
 
 import java.math.BigDecimal;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -25,6 +26,7 @@ public class CryptoPairModel {
 	
 	private String crypto;
 	
+	@Column(name = "amount", precision = 19, scale = 8)
 	private BigDecimal amount;
 
 	public CryptoPairModel() {

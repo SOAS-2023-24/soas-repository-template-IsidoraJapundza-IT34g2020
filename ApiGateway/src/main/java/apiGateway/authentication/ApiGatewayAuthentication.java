@@ -38,7 +38,7 @@ public class ApiGatewayAuthentication {
 			    .pathMatchers("/crypto-wallet/**").hasAnyRole("ADMIN")
 				.pathMatchers("/crypto-exchange", "/crypto-exchange/**").permitAll()
 				.pathMatchers("/crypto-conversion").hasRole("USER")
-				.pathMatchers("/trade-service").hasRole("USER")
+				.pathMatchers("/trade-service", "/trade-service/**").hasRole("USER")
 				.pathMatchers(HttpMethod.POST).hasRole("ADMIN"))
 				.httpBasic(Customizer.withDefaults());
 
