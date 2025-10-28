@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 networks:
   soas-net:
     external: true
@@ -122,3 +123,129 @@ services:
     environment:
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: "http://naming-server:8761/eureka/"
     networks: [soas-net]
+=======
+networks:
+  soas-net:
+    external: true
+
+services:
+  naming-server:
+    image: isidora1001/naming-server:latest
+    container_name: naming-server
+    ports:
+      - "8761:8761"
+    networks: [soas-net]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8761/actuator/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 20
+      start_period: 10s
+
+  users-service:
+    image: isidora1001/users-service:latest
+    container_name: users-service
+    ports:
+      - "8770:8770"
+    environment:
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: "http://naming-server:8761/eureka/"
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info"
+      MANAGEMENT_ENDPOINT_HEALTH_SHOWDETAILS: "ALWAYS"
+    networks: [soas-net]
+    restart: unless-stopped
+    depends_on:
+      naming-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8770/actuator/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 30
+      start_period: 15s
+
+  api-gateway:
+    image: isidora1001/api-gateway:latest
+    container_name: api-gateway
+    ports:
+      - "8765:8765"
+    environment:
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: "http://naming-server:8761/eureka/"
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info"
+      MANAGEMENT_ENDPOINT_HEALTH_SHOWDETAILS: "ALWAYS"
+    networks: [soas-net]
+    restart: unless-stopped
+    depends_on:
+      naming-server:
+        condition: service_healthy
+      users-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8765/actuator/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 30
+      start_period: 15s
+
+  bank-account:
+    image: isidora1001/bank-account:latest
+    container_name: bank-account
+    ports:
+      - "8200:8200"
+    environment:
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: "http://naming-server:8761/eureka/"
+    networks: [soas-net]
+
+  crypto-wallet:
+    image: isidora1001/crypto-wallet:latest
+    container_name: crypto-wallet
+    ports:
+      - "8300:8300"
+    environment:
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: "http://naming-server:8761/eureka/"
+    networks: [soas-net]
+
+  currency-exchange:
+    image: isidora1001/currency-exchange:latest
+    container_name: currency-exchange
+    ports:
+      - "8000:8000"
+    environment:
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: "http://naming-server:8761/eureka/"
+    networks: [soas-net]
+
+  currency-conversion:
+    image: isidora1001/currency-conversion:latest
+    container_name: currency-conversion
+    ports:
+      - "8100:8100"
+    environment:
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: "http://naming-server:8761/eureka/"
+    networks: [soas-net]
+
+  crypto-exchange:
+    image: isidora1001/crypto-exchange:latest
+    container_name: crypto-exchange
+    ports:
+      - "8400:8400"
+    environment:
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: "http://naming-server:8761/eureka/"
+    networks: [soas-net]
+
+  crypto-conversion:
+    image: isidora1001/crypto-conversion:latest
+    container_name: crypto-conversion
+    ports:
+      - "8500:8500"
+    environment:
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: "http://naming-server:8761/eureka/"
+    networks: [soas-net]
+
+  trade-service:
+    image: isidora1001/trade-service:latest
+    container_name: trade-service
+    ports:
+      - "8600:8600"
+    environment:
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: "http://naming-server:8761/eureka/"
+    networks: [soas-net]
+>>>>>>> branch 'master' of https://github.com/SOAS-2023-24/soas-repository-template-IsidoraJapundza-IT34g2020.git
