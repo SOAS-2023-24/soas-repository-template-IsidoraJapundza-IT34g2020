@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 networks:
   soas-net:
     external: true
@@ -248,4 +247,3 @@ services:
     environment:
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: "http://naming-server:8761/eureka/"
     networks: [soas-net]
->>>>>>> branch 'master' of https://github.com/SOAS-2023-24/soas-repository-template-IsidoraJapundza-IT34g2020.git
