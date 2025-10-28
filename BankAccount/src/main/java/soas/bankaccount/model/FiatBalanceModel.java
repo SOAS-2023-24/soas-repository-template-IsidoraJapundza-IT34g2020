@@ -21,8 +21,8 @@ public class FiatBalanceModel {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
-	@ManyToOne(fetch = FetchType.EAGER) //LAZY?
-	@JoinColumn(name = "bank_account_id")
+	@ManyToOne(fetch = FetchType.LAZY) 
+	@JoinColumn(name = "bank_account_id", nullable = false)
 	private BankAccountModel bankAccount;
 	
 	@Column(nullable = true, length = 3)

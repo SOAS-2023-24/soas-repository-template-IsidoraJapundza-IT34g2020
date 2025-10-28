@@ -27,8 +27,7 @@ public class BankAccountModel {
 	@Column(unique = true, nullable = false)
 	private String email;
 	
-	@OneToMany(mappedBy = "bankAccount", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-	
+	@OneToMany(mappedBy = "bankAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
 	private List<FiatBalanceModel> fiatBalances;
 	
 	public BankAccountModel() {

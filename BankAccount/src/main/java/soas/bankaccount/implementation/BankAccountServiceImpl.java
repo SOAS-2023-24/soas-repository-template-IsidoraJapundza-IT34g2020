@@ -1,6 +1,7 @@
 package soas.bankaccount.implementation;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -100,6 +101,27 @@ public class BankAccountServiceImpl implements BankAccountService {
 			
 			BankAccountModel acc = new BankAccountModel(dto.getEmail());
 			acc.setFiatBalances(zeroBalancesFor(acc)); // sve valute iz enuma sa 0
+			if (dto.getFiatBalances() != null) {
+				for (FiatBalanceDto fb : dto.getFiatBalances()) {
+					if (fb == null || fb.getCurrency() == null) {
+						return ResponseEntity.badRequest().body(msg("Currency is required."));
+					}
+					String cur = normalizeFiat(fb.getCurrency());
+					BigDecimal val = (fb.getBalance() == null) ? BigDecimal.ZERO : fb.getBalance();
+					if (val.signum() < 0) {
+						return ResponseEntity.badRequest().body(msg("Balance must be >= 0 for " + cur));
+					}
+					
+					FiatBalanceModel rec = findFiatBalance(acc.getFiatBalances(), cur);
+					if (rec == null) {
+						rec = new FiatBalanceModel(cur, BigDecimal.ZERO);
+						rec.setBankAccount(acc);
+						acc.getFiatBalances().add(rec);
+					}
+					rec.setBalance(val.setScale(4, RoundingMode.HALF_UP));
+				}
+			}
+			
 			BankAccountModel saved = repository.save(acc);
 			
 			return ResponseEntity.status(HttpStatus.CREATED).body(convertToDto(saved));
@@ -165,18 +187,20 @@ public class BankAccountServiceImpl implements BankAccountService {
 		public ResponseEntity<?> deleteBankAccount(String email, @RequestHeader("Authorization") String authorizationHeader) {
 			String role = usersProxy.getCurrentUserRole(authorizationHeader);
 			
-			if (!"ADMIN".equalsIgnoreCase(role)) {
-				throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only ADMIN can delete bank accounts.");
+			if (!"ADMIN".equalsIgnoreCase(role) && !"OWNER".equalsIgnoreCase(role)) {
+				throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only ADMIN or OWNER can delete bank accounts.");
 			}
 		
 			String norm = email.trim().toLowerCase(Locale.ROOT);
-		    int deleted = repository.deleteByEmail(norm);
+			//int deleted = repository.deleteByEmail(norm);
 
-		    if (deleted == 0) {
+			var acc = repository.findByEmail(norm);
+		    if (acc == null) {
 		        return ResponseEntity.status(HttpStatus.NOT_FOUND)
 		                .body(Map.of("error","NOT_FOUND","message","No bank account for email: " + norm));
 		    }
 		    
+		    repository.delete(acc);
 		    return ResponseEntity.noContent().build(); // 204 No Content
 			//repository.deleteByEmail(email);
 			// dodati poruku

@@ -1,10 +1,13 @@
 package soas.cryptoWallet.implementation;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -45,6 +48,7 @@ public class CryptoWalletServiceImplementation implements CryptoWalletService{
 		if (m == null) throw new NoDataFoundException("Wallet not found for email: " + email);
 		return toDto(m);
 	}
+	
 	@Override
 	public void deleteWallet(String email) {
 		CryptoWalletModel m = walletRepo.findByEmail(email);
@@ -63,6 +67,35 @@ public class CryptoWalletServiceImplementation implements CryptoWalletService{
 		if (walletRepo.existsByEmail(dto.getEmail()))
 			return ResponseEntity.status(HttpStatus.CONFLICT)
 					.body("Wallet already exists for email: " + dto.getEmail());
+		
+		if (dto.getPairs() == null || dto.getPairs().isEmpty()) {
+			dto.setPairs(List.of(
+					new CryptoPairDto("BTC", BigDecimal.ZERO.setScale(8)),
+					new CryptoPairDto("ETH", BigDecimal.ZERO.setScale(8)),
+					new CryptoPairDto("LTC", BigDecimal.ZERO.setScale(8))
+			));
+		} else {
+			Map<String, BigDecimal> map = new HashMap<>();
+			for (CryptoPairDto p : dto.getPairs()) {
+				if (p == null || p.getCrypto() == null) {
+					return ResponseEntity.badRequest().body("Crypto symbol is required.");
+				}
+				BigDecimal amt = (p.getAmount() == null) ? BigDecimal.ZERO : p.getAmount();
+	            if (amt.compareTo(BigDecimal.ZERO) < 0) {
+	                return ResponseEntity.badRequest().body("Amount must be >= 0 for " + p.getCrypto());
+	            }
+	            map.put(p.getCrypto().trim().toUpperCase(), amt.setScale(8, RoundingMode.DOWN));
+			}
+			for (String c : List.of("BTC","ETH","LTC")) {
+	            map.putIfAbsent(c, BigDecimal.ZERO.setScale(8));
+	        }
+	        dto.setPairs(
+	            map.entrySet().stream()
+	               .map(e -> new CryptoPairDto(e.getKey(), e.getValue()))
+	               .toList()
+	        );
+		}
+		
 		
 		CryptoWalletModel saved = saveFromDto(new CryptoWalletModel(dto.getEmail()), dto);
 		return ResponseEntity.status(HttpStatus.CREATED).body(toDto(saved));

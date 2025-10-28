@@ -22,6 +22,7 @@ import jakarta.validation.Valid;
 import usersService.model.UserModel;
 import usersService.repository.UsersServiceRepository;
 import api.dto.BankAccountDto;
+import api.dto.CryptoWalletDto;
 import api.feignProxies.BankAccountProxy;
 import api.feignProxies.CryptoWalletProxy;
 
@@ -94,8 +95,10 @@ public class UserServiceImplementation implements UsersService{
 		
 		// ako se pravi USER, napravi i racun
 		boolean bankCreated = false;
-	    if ("ADMIN".equalsIgnoreCase(callerRole) && "USER".equalsIgnoreCase(targetRole)) {
-	        try {
+		boolean walletCreated = false;
+	    //if ("ADMIN".equalsIgnoreCase(callerRole) && "USER".equalsIgnoreCase(targetRole)) {
+	    if ("USER".equalsIgnoreCase(targetRole)) {  
+			try {
 	            BankAccountDto ba = new BankAccountDto();
 	            ba.setEmail(created.getEmail());
 
@@ -112,6 +115,15 @@ public class UserServiceImplementation implements UsersService{
 	            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 	                    .body("Error creating bank account: " + ex.getMessage());*/
 	        }
+	        
+	        try {
+	        	CryptoWalletDto cw = new CryptoWalletDto();
+	        	cw.setEmail(created.getEmail());
+	        	ResponseEntity<?> respW = cryptoWalletProxy.createWallet(cw, authorizationHeader);
+	        	walletCreated = (respW != null && respW.getStatusCode().is2xxSuccessful());
+	        } catch (Exception ex) {
+	        	walletCreated = false;
+	        }
 	    }
 				
 		var body = Map.of(
@@ -119,7 +131,8 @@ public class UserServiceImplementation implements UsersService{
 		        "email", created.getEmail(),
 		        "role", created.getRole(),
 		        "bankAccountCreated", bankCreated,
-		        "note", bankCreated ? "Bank account created by ADMIN." : "Bank account not created (requires ADMIN)."
+		        "cryptoWalletCreated", walletCreated,
+		        "note", bankCreated ? "Bank account created by ADMIN." : "Bank account not created (requires ADMIN)."    		
 		);
 		// 201
 		return ResponseEntity.status(HttpStatus.CREATED).body(body);
@@ -208,12 +221,21 @@ public class UserServiceImplementation implements UsersService{
 			}
 			
 			boolean bankDeleted = false;
+			boolean walletDeleted = false;
 			try {
 				bankAccountProxy.deleteBankAccount(target.getEmail(), authorizationHeader);
 	            bankDeleted = true;
 			} catch (FeignException ex) {
 				// ne rusimo brisnaj eusera
 				bankDeleted = false;
+			}
+			
+			try {
+				cryptoWalletProxy.deleteWallet(target.getEmail());
+	            walletDeleted = true;
+			} catch (FeignException ex) {
+				// ne rusimo brisnaj eusera
+				walletDeleted = false;
 			}
 			//prvo pokusaj brisanja bank accoutna
 			//var err = tryDeleteBankAccount(target.getEmail(), authorizationHeader);
@@ -223,6 +245,7 @@ public class UserServiceImplementation implements UsersService{
 			return ResponseEntity.ok(Map.of(
 					"userDeleted", true,
 		            "bankAccountDeleted", bankDeleted,
+		            "cryptoWalletDeleted", walletDeleted,
 		            "note", bankDeleted ? "Bank account deleted by ADMIN." : "Bank account deletion skipped/failed (ADMIN only)."
 		    ));
 		}
